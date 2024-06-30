@@ -3,6 +3,8 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 import userRoutes from '../routes/user.route.js'
 import authRouter from '../routes/auth.route.js'
+import { errorHandler } from '../utils/errorHandler.js'
+import cors from 'cors'
 
 dotenv.config() 
 
@@ -18,6 +20,7 @@ mongoose.connect(process.env.MONGO_CONNECTION_STRING).then(() => {
 
 // middleware
 app.use(express.json())
+app.use(cors())
 
 app.listen(3001, () => {
     console.log("Server started listening at 3001")
@@ -26,17 +29,13 @@ app.listen(3001, () => {
 
 app.use('/users', userRoutes)
 app.use('/auth', authRouter)
-const errorHandler = (err,req, res, next) => {
-    console.log("Inside middleware!!")
-    const errorCode = err.statusCode || 500
-    const errorMessage = err.message
 
-    return res.status(errorCode).json({
-        message: errorMessage,
-        errorCode,
-        success: false
-    })
-}
+/*
+Express middleware functions are executed sequentially, in the order they are defined using app.use(). 
+This order is crucial for how they interact with requests and responses. Therefore the errorHandler below should be
+after the routes as its intended to catch errors after the routes and controllers are executed. 
+
+*/
 
 app.use(errorHandler)
 
